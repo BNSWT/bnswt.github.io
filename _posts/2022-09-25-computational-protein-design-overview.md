@@ -53,11 +53,11 @@ In this case, following the design itself, it is usual to filter designed sequen
 
 ### Sequence-based
 
-![](2022-09-25-15-32-32.png)
+![](https://bnswt.github.io/files/2022-09-25-15-32-32.png)
 
 ### Structure-based
 
-![](2022-09-25-15-34-47.png)
+![](https://bnswt.github.io/files/2022-09-25-15-34-47.png)
 
 ## Reference
 

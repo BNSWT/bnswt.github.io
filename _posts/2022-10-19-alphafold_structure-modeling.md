@@ -84,9 +84,18 @@ PFP任务中最具综合性的benchmark是Critical Assessment of Functional Anno
 > 计算公式：$d(x, y)=|x_1-x_2|+|y_1-y_2|$
 > 曼哈顿距离依赖坐标系统的旋转，不依赖坐标系统的平移
 
-<!-- TODO: Lin similarity -->
 然后，通过真实的GO annotation和标准的比较语义相似性的方法（比如Lin similarity）比较这些蛋白质`ground truth`之间的相似性。
 
+> Lin similarity:
+> 由于annotation更多有复杂的网络层级结构，所以直接比较相似程度没有从语义上出发来得准确。
+> 一个单词可以表示一个类别。对于两个类别C和C'，它们的信息量（信息熵）之和可以表示为：
+> -logP(C)-logP(C')
+> P(C)代表在整个样本空间（单词样本空间）中随机采样采到C类样本的概率
+> 而这些类别之间，往往有着复杂的层级结构，他们可能有多个公共父类，越顶层的父类，往往越抽象；越底层的父类，往往越具体。这些父类中和这两类有着最近、最直接从属关系的，应当是我们最需要关注的。如果两个类在语义上越相似，那么最具体的那个父类所表达的信息就越能涵盖这两个类别的信息。所以可以定义如下相似性：
+> sim(x_1, x_2)=\frac{2\times logP(C_0)}{logP(C_1)+logP(C_2)}
+> 例如：在这个词汇网络中：
+> ![](https://bnswt.github.io/files/2022-10-29-21-42-57.png)
+> sim(hill, coast)=\frac{2\times logP(geological-formation)}{logP(hill)+logP(coast)}
 
 最后，通过representation similarity和ground truth GO similarity的Spearman rank-order correlation value来评估representation的好坏。correlation value越大，表示representation越好。
 

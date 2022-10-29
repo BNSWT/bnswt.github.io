@@ -1,4 +1,17 @@
----
+<!-- vscode-markdown-toc -->
+* 1. [背景知识](#)
+* 2. [Overview](#Overview)
+* 3. [语义相似性推理](#-1)
+	* 3.1. [概述](#-1)
+	* 3.2. [过程](#-1)
+	* 3.3. [结果](#-1)
+	* 3.4. [关键点：](#-1)
+
+<!-- vscode-markdown-toc-config
+	numbering=true
+	autoSave=true
+	/vscode-markdown-toc-config -->
+<!-- /vscode-markdown-toc -->---
 title: '论文笔记(Learning functional properties of proteins with language models)'
 date: 2022-10-24
 permalink: /posts/2022/10/note-for-paper-1/
@@ -19,7 +32,7 @@ tags:
 > Ontology-based data integration(https://en.wikipedia.org/wiki/Ontology-based_data_integration)
 > 使用一个或更多ontology去整合大量混杂的数据信息
 
-## 背景知识
+##  1. <a name=''></a>背景知识
 
 截至2021年5月，UniProt收录了大约215,000,000条蛋白质序列，然而只有560,000(~0.26%)条序列被人工检查、标记过。这是因为标记需要大量cost。为了进行自动标记，很多团队开始研究新的计算方法以预测蛋白质的：
 
@@ -33,7 +46,7 @@ tags:
 
 PFP任务中最具综合性的benchmark是Critical Assessment of Functional Annotation(CAFA)，需要对一个目标蛋白质set预测他们基于GO的功能联系，然后再进行人工检验核算结果。
 
-## Overview
+##  2. <a name='Overview'></a>Overview
 
 对不同方法根据技术特征和其application分类，然后进行评估。具体评估任务涵盖了：
 
@@ -43,3 +56,70 @@ PFP任务中最具综合性的benchmark是Critical Assessment of Functional Anno
 4. 蛋白质-蛋白质亲和性估计
 
 
+这篇论文选取了23种方法作为benchmarking task，后面的介绍将包括每种方法protein representation的构建和应用，以及对应的下游任务和评估。本文一共比较了39种方法（包括前面的benchmark），这些方法的平均表现总结如下表：
+
+![](https://bnswt.github.io/files/2022-10-27-09-22-49.png)
+
+（有的method对于特定的任务并不适用，所以在表中会有一些NA）
+
+蛋白质表征学习可以分为两个类别：
+
+1. 蛋白质级别的学习
+1. 氨基酸残基级别的学习
+
+这篇论文主要讨论的主要是蛋白质级别的学习（除了最后一个任务，突变对蛋白质-蛋白质亲和性的改变）
+
+##  3. <a name='-1'></a>语义相似性推理
+
+###  3.1. <a name='-1'></a>概述
+
+这个任务主要想衡量模型捕捉生物分子的功能相似性(biomolecular functional similarity)的能力。故而实验中采用了GO annotations以表征分子级别的功能、大规模的生物逻辑角色和亚细胞定位。
+
+###  3.2. <a name='-1'></a>过程
+
+首先，使用`曼哈顿距离`和`欧几里得距离`定量计算`representation vector`的相似性。
+
+> 曼哈顿距离(Manhattan distance/Manhattan length)：标明两个点上在标准坐标系上的绝对轴距之总和。又称计程车几何(Taxicab geometry)，方格线距离
+> ![](https://bnswt.github.io/files/2022-10-29-15-54-34.png)
+> 计算公式：$d(x, y)=|x_1-x_2|+|y_1-y_2|$
+> 曼哈顿距离依赖坐标系统的旋转，不依赖坐标系统的平移
+
+<!-- TODO: Lin similarity -->
+然后，通过真实的GO annotation和标准的比较语义相似性的方法（比如Lin similarity）比较这些蛋白质`ground truth`之间的相似性。
+
+
+最后，通过representation similarity和ground truth GO similarity的Spearman rank-order correlation value来评估representation的好坏。correlation value越大，表示representation越好。
+
+<!-- TODO: Pearson product-moment correlation coefficient-->
+> 在统计学中，斯皮尔曼等级相关系数（简称等级相关系数，或称秩相关系数，英语：Spearman's rank correlation coefficient或Spearman's $\rho$）常以希腊字母$\rho$或以$r_{s}$表示，这一相关系数以查尔斯·斯皮尔曼（英语：Charles Spearman）之名命名。它是衡量两个变量的相关性的非参数指标。它利用单调函数评价两个统计变量的相关性。若数据中没有重复值，且当两变量完全单调相关时，斯皮尔曼相关系数为+1或−1。
+> 计算公式：$r_s=\rho_{R(X),R(Y)}=\frac{cov(R(x), R(Y))}{\sigma_{R(X)}\sigma_{R(Y)}}$
+> R表示将一组原始数据X转换成等级数据R(X)的函数
+
+###  3.3. <a name='-1'></a>结果
+
+![](https://bnswt.github.io/files/2022-10-29-16-52-54.png)
+
+a,b,c代表不同的GO categories:
+
++ a: molecular function
++ b: biological process
++ c: cellular component
+
+每张图的一个点代表一个模型的表现，横坐标值表示在`Sparse Uniform`数据集上的correlation,纵坐标值表示在`Well Annotated 500`数据集上的correlation，点的位置越靠右上越好。
+
+具体计算方法：
+
++ ground truth GO的similarity list: 用Lin's measure
++ representation的similarity list: 用曼哈顿距离
++ 两个list的相关性：Spearman correlation
+
+点的颜色表示模型规模：
+
++ 绿色：经典representation
++ 蓝色：小规模学习得到的representation
++ 红色：大规模学习得到的representation
+
+###  3.4. <a name='-1'></a>关键点：
+
+1. 数据（人类蛋白质组）非常庞大而稀疏，不同的methods表现起来差别不大。
+2. distance metric对结果影响很大。
